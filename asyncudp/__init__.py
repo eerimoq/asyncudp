@@ -1,5 +1,4 @@
 import asyncio
-from functools import partial
 
 from .version import __version__
 
