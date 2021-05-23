@@ -69,7 +69,7 @@ async def create_socket(local_addr=None, remote_addr=None, *, queue_max_size=0):
 
     loop = asyncio.get_running_loop()
     transport, protocol = await loop.create_datagram_endpoint(
-        partial(_SocketProtocol, queue_max_size=queue_max_size),
+        lambda: _SocketProtocol(queue_max_size),
         local_addr=local_addr,
         remote_addr=remote_addr)
 
