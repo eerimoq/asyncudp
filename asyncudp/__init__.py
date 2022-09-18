@@ -1,4 +1,5 @@
 import asyncio
+from typing import Optional
 from .version import __version__
 
 
@@ -10,6 +11,7 @@ class _SocketProtocol:
 
     def __init__(self):
         self._packets = asyncio.Queue()
+        self._error: Optional[Exception] = None
 
     def connection_made(self, transport):
         pass
@@ -21,10 +23,18 @@ class _SocketProtocol:
         self._packets.put_nowait((data, addr))
 
     def error_received(self, exc):
-        pass
+        self._error = exc
 
     async def recvfrom(self):
-        return await self._packets.get()
+        while True:
+            try:
+                tr = await asyncio.wait_for(self._packets.get(), timeout=0.6)
+                return tr
+            except asyncio.TimeoutError:
+                if self._error:
+                    to_raise, self._error = self._error, None
+                    raise to_raise
+                # else no error, keep waiting
 
 
 class Socket:
